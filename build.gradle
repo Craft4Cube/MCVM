@@ -1,7 +1,7 @@
 buildscript {
     repositories {
         jcenter()
-        maven { url = "http://files.minecraftforge.net/maven" }
+        maven { url = "https://files.minecraftforge.net/maven" }
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
@@ -10,9 +10,10 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle.forge'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 
-version = "2.6"
+
+version = "2.7"
 group = "li.netcube.mcvm" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "mcvm"
+archivesBaseName = "modid"
 
 sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 compileJava {
@@ -20,7 +21,7 @@ compileJava {
 }
 
 minecraft {
-    version = "1.12.2-14.23.4.2705"
+    version = "1.12.2-14.23.5.2794"
     runDir = "run"
     
     // the mappings can be changed at any time, and must be in the following format.
@@ -64,7 +65,7 @@ processResources {
     // replace stuff in mcmod.info, nothing else
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
-
+                
         // replace version and mcversion
         expand 'version':project.version, 'mcversion':project.minecraft.version
     }
