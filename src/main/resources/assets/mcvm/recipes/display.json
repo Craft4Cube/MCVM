@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ABA",
+    "CDE",
+    "FGF"
+  ],
+  "key": {
+    "A": {
+      "item": "mcvm:ic3"
+    },
+    "B": {
+      "item": "minecraft:redstone_lamp"
+    },
+    "C": {
+      "item": "minecraft:stained_glass_pane",
+      "data": 14
+    },
+    "D": {
+      "item": "minecraft:stained_glass_pane",
+      "data": 13
+    },
+    "E": {
+      "item": "minecraft:stained_glass_pane",
+      "data": 11
+    },
+    "F": {
+      "item": "minecraft:iron_ingot"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    }
+  },
+  "result": {"item": "mcvm:display"}
+}

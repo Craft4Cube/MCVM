@@ -1,0 +1,20 @@
+{
+    "variants": {
+        "facing=north": {
+            "model": "mcvm:display"
+        },
+        "facing=east": {
+            "model": "mcvm:display",
+            "y": 90
+        },
+        "facing=south": {
+            "model": "mcvm:display",
+            "y": 180
+        },
+        "facing=west": {
+            "model": "mcvm:display",
+            "y": 270
+        }
+    }
+}
+

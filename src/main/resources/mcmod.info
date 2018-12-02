@@ -1,0 +1,16 @@
+[
+{
+  "modid": "mcvm",
+  "name": "Minecraft Virtual Machines",
+  "description": "Real Computers In Minecraft!\n\nPowered by:\n  QEMU:\n    https://www.qemu.org/\n    License: https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html#SEC1\n\n  Vernacular VNC:\n    https://github.com/shinyhut/vernacular-vnc/\n    License: https://github.com/shinyhut/vernacular-vnc/blob/master/LICENSE",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "https://netcube.li/mcvm",
+  "updateUrl": "",
+  "authorList": ["Craft4Cube"],
+  "credits": "",
+  "logoFile": "assets/mcvm/textures/gui/logo.png",
+  "screenshots": [],
+  "dependencies": []
+}
+]
