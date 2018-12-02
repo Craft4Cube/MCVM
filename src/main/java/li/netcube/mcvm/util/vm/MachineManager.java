@@ -1,14 +1,18 @@
 package li.netcube.mcvm.util.vm;
 
 import li.netcube.mcvm.MCVM;
+import li.netcube.mcvm.util.StreamGobbler;
 import org.apache.commons.io.FileUtils;
 import net.minecraft.server.MinecraftServer;
 import org.apache.commons.lang3.SystemUtils;
+import org.lwjgl.Sys;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MachineManager {
     // Images
@@ -20,22 +24,37 @@ public class MachineManager {
         Runtime r = Runtime.getRuntime();
         boolean success = false;
         try {
-            ProcessBuilder builder = new ProcessBuilder();
-            File gameFolder = new File(".");
+            List<String> commandLine = new ArrayList<String>();
+            ProcessBuilder processBuilder = new ProcessBuilder();
+
             if (SystemUtils.IS_OS_WINDOWS) {
-                process = Runtime.getRuntime().exec("bin\\qemu\\qemu-img.exe create -f qcow2 " + "\"" + img_file + "\" " + size, null, gameFolder);
-                process.waitFor();
+                commandLine.add("bin/qemu/qemu-img.exe");
             } else if (SystemUtils.IS_OS_LINUX) {
-                process = Runtime.getRuntime().exec("qemu-img create -f qcow2 \"" + img_file + "\" " + size, null, gameFolder);
+                commandLine.add("qemu-img");
+            }
+
+            commandLine.add("create");
+            commandLine.add("-f");
+            commandLine.add("qcow2");
+            commandLine.add(img_file.toString());
+            commandLine.add(size);
+
+            String[] aCommandLine = new String[commandLine.size()];
+            aCommandLine = commandLine.toArray(aCommandLine);
+
+            File gameFolder = new File(new File("./").getAbsolutePath()).getParentFile();
+
+            if (SystemUtils.IS_OS_WINDOWS || SystemUtils.IS_OS_LINUX) {
+                //this.process = Runtime.getRuntime().exec(String.join(" ", commandLine), null, gameFolder);
+                process = Runtime.getRuntime().exec(aCommandLine, null, gameFolder);
+                StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream());
+                StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream());
+                errorGobbler.start();
+                outputGobbler.start();
                 process.waitFor();
             }
-            //builder.redirectOutput(new File("syslog.txt"));
-            //builder.redirectError(new File("errlog.txt"));
-
             success = img_file.exists();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
 

@@ -1,5 +1,8 @@
 package li.netcube.mcvm.util.vm.commands;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import li.netcube.mcvm.common.blocks.ComputerBlock;
 import li.netcube.mcvm.common.ui.ComputerContainerTileEntity;
 import net.minecraft.util.EnumFacing;
@@ -7,83 +10,164 @@ import net.minecraft.world.World;
 
 public class RedstoneCommandParser implements ICommandParser {
     @Override
-    public boolean canHandleCommand(String command, ComputerContainerTileEntity computerTileEntity) {
-        String[] commandParts = command.split("\\.");
-        if (commandParts.length >= 2) {
-            if (commandParts[0].equals("redstone") && (commandParts[1].equals("get") || commandParts[1].equals("set"))) {
-                return true;
-            }
+    public boolean canHandleCommand(JsonObject command, ComputerContainerTileEntity computerTileEntity) {
+        if (command.has("subsystem"))
+        if (command.get("subsystem").getAsString().equals("redstone")) {
+            return true;
         }
         return false;
     }
 
     @Override
-    public String parseCommand(String command, ComputerContainerTileEntity computerTileEntity) {
-        String[] commandParts = command.split("\\.");
-        if (commandParts.length >= 2) switch (commandParts[0] + "." + commandParts[1] + "." + commandParts[2]) {
-            case "redstone.set.up":
-                computerTileEntity.setOutputState(EnumFacing.UP, Integer.parseInt(commandParts[3]));
-                return "ok";
-            case "redstone.set.down":
-                computerTileEntity.setOutputState(EnumFacing.DOWN, Integer.parseInt(commandParts[3]));
-                return "ok";
-            case "redstone.set.north":
-                computerTileEntity.setOutputState(EnumFacing.NORTH.getOpposite(), Integer.parseInt(commandParts[3]));
-                return "ok";
-            case "redstone.set.east":
-                computerTileEntity.setOutputState(EnumFacing.EAST.getOpposite(), Integer.parseInt(commandParts[3]));
-                return "ok";
-            case "redstone.set.south":
-                computerTileEntity.setOutputState(EnumFacing.SOUTH.getOpposite(), Integer.parseInt(commandParts[3]));
-                return "ok";
-            case "redstone.set.west":
-                computerTileEntity.setOutputState(EnumFacing.WEST.getOpposite(), Integer.parseInt(commandParts[3]));
-                return "ok";
-            case "redstone.set.top":
-                computerTileEntity.setOutputState(EnumFacing.UP, Integer.parseInt(commandParts[3]));
-                return "ok";
-            case "redstone.set.bottom":
-                computerTileEntity.setOutputState(EnumFacing.DOWN, Integer.parseInt(commandParts[3]));
-                return "ok";
-            case "redstone.set.front":
-                computerTileEntity.setOutputState(convertDirectionToFace("front", computerTileEntity).getOpposite(), Integer.parseInt(commandParts[3]));
-                return "ok";
-            case "redstone.set.back":
-                computerTileEntity.setOutputState(convertDirectionToFace("back", computerTileEntity).getOpposite(), Integer.parseInt(commandParts[3]));
-                return "ok";
-            case "redstone.set.left":
-                computerTileEntity.setOutputState(convertDirectionToFace("left", computerTileEntity).getOpposite(), Integer.parseInt(commandParts[3]));
-                return "ok";
-            case "redstone.set.right":
-                computerTileEntity.setOutputState(convertDirectionToFace("right", computerTileEntity).getOpposite(), Integer.parseInt(commandParts[3]));
-                return "ok";
+    public JsonObject parseCommand(JsonObject command, ComputerContainerTileEntity computerTileEntity) {
+        JsonObject response = new JsonObject();
 
-            case "redstone.get.up":
-                return Integer.toString(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(EnumFacing.UP), EnumFacing.UP.getOpposite()));
-            case "redstone.get.down":
-                return Integer.toString(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(EnumFacing.DOWN), EnumFacing.DOWN.getOpposite()));
-            case "redstone.get.north":
-                return Integer.toString(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(EnumFacing.NORTH), EnumFacing.NORTH.getOpposite()));
-            case "redstone.get.east":
-                return Integer.toString(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(EnumFacing.EAST), EnumFacing.EAST.getOpposite()));
-            case "redstone.get.south":
-                return Integer.toString(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(EnumFacing.SOUTH), EnumFacing.SOUTH.getOpposite()));
-            case "redstone.get.west":
-                return Integer.toString(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(EnumFacing.WEST), EnumFacing.WEST.getOpposite()));
-            case "redstone.get.top":
-                return Integer.toString(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(EnumFacing.UP), EnumFacing.UP.getOpposite()));
-            case "redstone.get.bottom":
-                return Integer.toString(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(EnumFacing.DOWN), EnumFacing.DOWN.getOpposite()));
-            case "redstone.get.front":
-                return Integer.toString(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(convertDirectionToFace("front", computerTileEntity)), convertDirectionToFace("front", computerTileEntity).getOpposite()));
-            case "redstone.get.back":
-                return Integer.toString(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(convertDirectionToFace("back", computerTileEntity)), convertDirectionToFace("back", computerTileEntity).getOpposite()));
-            case "redstone.get.left":
-                return Integer.toString(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(convertDirectionToFace("left", computerTileEntity)), convertDirectionToFace("left", computerTileEntity).getOpposite()));
-            case "redstone.get.right":
-                return Integer.toString(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(convertDirectionToFace("right", computerTileEntity)), convertDirectionToFace("right", computerTileEntity).getOpposite()));
+        String side = "";
+        String action = "";
+        int value = 0;
+
+        if (command.has("subsystem")) {
+            response.add("subsystem", new JsonPrimitive(command.get("subsystem").getAsString()));
         }
-        return "error.parse.failed";
+
+        if (command.has("side")) {
+            side = command.get("side").getAsString();
+            response.add("side", new JsonPrimitive(command.get("side").getAsString()));
+        }
+
+        if (command.has("action")) {
+            action = command.get("action").getAsString();
+            response.add("action", new JsonPrimitive(command.get("action").getAsString()));
+        }
+
+        if (command.has("value")) {
+            value = command.get("value").getAsInt();
+        }
+
+        if (action.toLowerCase().equals("set")) {
+            if (!command.has("value")) {
+                response.add("result", new JsonPrimitive("error"));
+                response.add("error", new JsonPrimitive("invalid parameter"));
+                response.add("parameter", new JsonPrimitive("value"));
+                return response;
+            }
+            switch (side) {
+                case "up":
+                    computerTileEntity.setOutputState(EnumFacing.UP, value);
+                    response.add("result", new JsonPrimitive("ok"));
+                    return response;
+                case "down":
+                    computerTileEntity.setOutputState(EnumFacing.DOWN, value);
+                    response.add("result", new JsonPrimitive("ok"));
+                    return response;
+                case "north":
+                    computerTileEntity.setOutputState(EnumFacing.NORTH.getOpposite(), value);
+                    response.add("result", new JsonPrimitive("ok"));
+                    return response;
+                case "east":
+                    computerTileEntity.setOutputState(EnumFacing.EAST.getOpposite(), value);
+                    response.add("result", new JsonPrimitive("ok"));
+                    return response;
+                case "south":
+                    computerTileEntity.setOutputState(EnumFacing.SOUTH.getOpposite(), value);
+                    response.add("result", new JsonPrimitive("ok"));
+                    return response;
+                case "west":
+                    computerTileEntity.setOutputState(EnumFacing.WEST.getOpposite(), value);
+                    response.add("result", new JsonPrimitive("ok"));
+                    return response;
+                case "top":
+                    computerTileEntity.setOutputState(EnumFacing.UP, value);
+                    response.add("result", new JsonPrimitive("ok"));
+                    return response;
+                case "bottom":
+                    computerTileEntity.setOutputState(EnumFacing.DOWN, value);
+                    response.add("result", new JsonPrimitive("ok"));
+                    return response;
+                case "front":
+                    computerTileEntity.setOutputState(convertDirectionToFace("front", computerTileEntity).getOpposite(), value);
+                    response.add("result", new JsonPrimitive("ok"));
+                    return response;
+                case "back":
+                    computerTileEntity.setOutputState(convertDirectionToFace("back", computerTileEntity).getOpposite(), value);
+                    response.add("result", new JsonPrimitive("ok"));
+                    return response;
+                case "left":
+                    computerTileEntity.setOutputState(convertDirectionToFace("left", computerTileEntity).getOpposite(), value);
+                    response.add("result", new JsonPrimitive("ok"));
+                    return response;
+                case "right":
+                    computerTileEntity.setOutputState(convertDirectionToFace("right", computerTileEntity).getOpposite(), value);
+                    response.add("result", new JsonPrimitive("ok"));
+                    return response;
+                default:
+                    response.add("result", new JsonPrimitive("error"));
+                    response.add("error", new JsonPrimitive("invalid parameter"));
+                    response.add("parameter", new JsonPrimitive("side"));
+                    return response;
+            }
+        } else if (action.toLowerCase().equals("get")) {
+            switch (side) {
+                case "up":
+                    response.add("result", new JsonPrimitive("ok"));
+                    response.add("value", new JsonPrimitive(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(EnumFacing.UP), EnumFacing.UP.getOpposite())));
+                    return response;
+                case "down":
+                    response.add("result", new JsonPrimitive("ok"));
+                    response.add("value", new JsonPrimitive(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(EnumFacing.DOWN), EnumFacing.DOWN.getOpposite())));
+                    return response;
+                case "north":
+                    response.add("result", new JsonPrimitive("ok"));
+                    response.add("value", new JsonPrimitive(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(EnumFacing.NORTH), EnumFacing.NORTH.getOpposite())));
+                    return response;
+                case "redstone.get.east":
+                    response.add("result", new JsonPrimitive("ok"));
+                    response.add("value", new JsonPrimitive(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(EnumFacing.EAST), EnumFacing.EAST.getOpposite())));
+                    return response;
+                case "redstone.get.south":
+                    response.add("result", new JsonPrimitive("ok"));
+                    response.add("value", new JsonPrimitive(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(EnumFacing.SOUTH), EnumFacing.SOUTH.getOpposite())));
+                    return response;
+                case "redstone.get.west":
+                    response.add("result", new JsonPrimitive("ok"));
+                    response.add("value", new JsonPrimitive(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(EnumFacing.WEST), EnumFacing.WEST.getOpposite())));
+                    return response;
+                case "redstone.get.top":
+                    response.add("result", new JsonPrimitive("ok"));
+                    response.add("value", new JsonPrimitive(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(EnumFacing.UP), EnumFacing.UP.getOpposite())));
+                    return response;
+                case "redstone.get.bottom":
+                    response.add("result", new JsonPrimitive("ok"));
+                    response.add("value", new JsonPrimitive(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(EnumFacing.DOWN), EnumFacing.DOWN.getOpposite())));
+                    return response;
+                case "redstone.get.front":
+                    response.add("result", new JsonPrimitive("ok"));
+                    response.add("value", new JsonPrimitive(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(convertDirectionToFace("front", computerTileEntity)), convertDirectionToFace("front", computerTileEntity).getOpposite())));
+                    return response;
+                case "redstone.get.back":
+                    response.add("result", new JsonPrimitive("ok"));
+                    response.add("value", new JsonPrimitive(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(convertDirectionToFace("back", computerTileEntity)), convertDirectionToFace("back", computerTileEntity).getOpposite())));
+                    return response;
+                case "redstone.get.left":
+                    response.add("result", new JsonPrimitive("ok"));
+                    response.add("value", new JsonPrimitive(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(convertDirectionToFace("left", computerTileEntity)), convertDirectionToFace("left", computerTileEntity).getOpposite())));
+                    return response;
+                case "redstone.get.right":
+                    response.add("result", new JsonPrimitive("ok"));
+                    response.add("value", new JsonPrimitive(computerTileEntity.getWorld().getRedstonePower(computerTileEntity.getPos().offset(convertDirectionToFace("right", computerTileEntity)), convertDirectionToFace("right", computerTileEntity).getOpposite())));
+                    return response;
+                default:
+                    response.add("result", new JsonPrimitive("error"));
+                    response.add("error", new JsonPrimitive("invalid parameter"));
+                    response.add("parameter", new JsonPrimitive("side"));
+                    return response;
+            }
+        } else {
+            response.add("result", new JsonPrimitive("error"));
+            response.add("error", new JsonPrimitive("invalid action"));
+            response.add("parameter", new JsonPrimitive("side"));
+            return response;
+        }
     }
 
 

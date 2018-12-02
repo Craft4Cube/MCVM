@@ -1,11 +1,19 @@
 package li.netcube.mcvm.util.vm;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import li.netcube.mcvm.MCVM;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import li.netcube.mcvm.common.ui.ComputerContainerTileEntity;
+import li.netcube.mcvm.util.StreamGobbler;
 import li.netcube.mcvm.util.tcpClient.*;
 import li.netcube.mcvm.util.vm.commands.ICommandParser;
 import net.minecraft.tileentity.TileEntity;
@@ -97,47 +105,94 @@ public class VirtualMachine {
             //If qemu is already running try to stop it.
             try {
                 TCPClient tmpMon = new TCPClient("127.0.0.1", this.MONPort);
-                tmpMon.getOutputStream().write(("quit\n").getBytes("UTF-8"));
+                tmpMon.getOutputStream().write(("quit\n").getBytes(StandardCharsets.UTF_8));
                 tmpMon.getOutputStream().flush();
                 tmpMon.close();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
 
             //-accel hax
             //-accel tcg,thread=multi
 
-            String commandLine = "-vga std -smp 4 -usbdevice tablet -k bin/qemu/keymaps/mcvm -boot menu=on,splash=resource/splash.bmp,splash-time=2500 -monitor tcp::" + MONPort + ",server,nowait -serial tcp::" + COMPort + ",server,nowait -vnc :" + (VNCPort - 5900) + ",password";
+            List<String> commandLine = new ArrayList<String>();
 
-            if (!MCVM.modConfig.getString("VirtualMachine", "customArguments", "").equals("")) {
-                commandLine += " " + MCVM.modConfig.getString("VirtualMachine","customArguments", "");
+            if (SystemUtils.IS_OS_WINDOWS) {
+                commandLine.add("bin/qemu/qemu-system-x86_64w.exe");
+            } else if (SystemUtils.IS_OS_LINUX) {
+                commandLine.add("qemu-system-x86_64");
             }
 
-            if (this.nic != null) commandLine = commandLine  + " -netdev user,id=n0 -device " + this.nic + ",netdev=n0";
-            else commandLine = commandLine + " -net none";
+            commandLine.add("-vga");
+            commandLine.add("std");
+            commandLine.add("-smp");
+            commandLine.add("4");
+            commandLine.add("-usbdevice");
+            commandLine.add("tablet");
+            commandLine.add("-k");
+            commandLine.add("bin/qemu/keymaps/mcvm");
+            commandLine.add("-boot");
+            commandLine.add("menu=on,splash=resource/splash.bmp,splash-time=2500");
+            commandLine.add("-monitor");
+            commandLine.add("tcp::" + MONPort + ",server,nowait");
+            commandLine.add("-serial");
+            commandLine.add("tcp::" + COMPort + ",server,nowait");
+            commandLine.add("-vnc");
+            commandLine.add(":" + (VNCPort - 5900) + ",password");
 
-            if (this.hdd0 != null) commandLine = commandLine + " -drive if=ide,index=0,media=disk,file=\"" + this.hdd0 + "\"";
-            if (this.hdd1 != null) commandLine = commandLine + " -drive if=ide,index=1,media=disk,file=\"" + this.hdd1 + "\"";
-            commandLine = commandLine + " -drive if=ide,index=2,media=cdrom" + ((this.cd0 != null) ? ",file=\"" + this.cd0 + "\"" : "");
-            commandLine = commandLine + " -drive if=ide,index=3,media=cdrom" + ((this.cd1 != null) ? ",file=\"" + this.cd1 + "\"" : "");
+            if (!MCVM.modConfig.getString("VirtualMachine", "customArguments", "").equals("")) {
+                commandLine.add(MCVM.modConfig.getString("VirtualMachine", "customArguments", ""));
+            }
 
-            commandLine = commandLine + " -drive if=floppy,index=0" + ((this.floppy0 != null) ? ",file=\"" + this.floppy0 + "\"" : "");
-            commandLine = commandLine + " -drive if=floppy,index=1" + ((this.floppy1 != null) ? ",file=\"" + this.floppy1 + "\"" : "");
+            if (this.nic != null) {
+                commandLine.add("-netdev");
+                commandLine.add("user,id=n0");
+                commandLine.add("-device");
+                commandLine.add(this.nic + ",netdev=n0");
+            } else {
+                commandLine.add("-net");
+                commandLine.add("none");
+            }
 
-            commandLine = commandLine + " -m " + this.memory;
+            if (this.hdd0 != null) {
+                commandLine.add("-drive");
+                commandLine.add("if=ide,index=0,media=disk,file=" + this.hdd0);
+            }
+            if (this.hdd1 != null) {
+                commandLine.add("-drive");
+                commandLine.add("if=ide,index=1,media=disk,file=" + this.hdd1);
+            }
 
-            Runtime r = Runtime.getRuntime();
+            commandLine.add("-drive"); commandLine.add("if=ide,index=2,media=cdrom" + ((this.cd0 != null) ? ",file=" + this.cd0 : ""));
+            commandLine.add("-drive"); commandLine.add("if=ide,index=3,media=cdrom" + ((this.cd1 != null) ? ",file=" + this.cd1 : ""));
+
+            commandLine.add("-drive"); commandLine.add("if=floppy,index=0" + ((this.floppy0 != null) ? ",file=" + this.floppy0 : ""));
+            commandLine.add("-drive"); commandLine.add("if=floppy,index=1" + ((this.floppy1 != null) ? ",file=" + this.floppy1 : ""));
+
+            commandLine.add("-m"); commandLine.add(this.memory);
+
             try {
-                ProcessBuilder builder = new ProcessBuilder();
+                String[] aCommandLine = new String[commandLine.size()];
+                aCommandLine = commandLine.toArray(aCommandLine);
+
                 File gameFolder = new File(new File("./").getAbsolutePath()).getParentFile();
-                if (SystemUtils.IS_OS_WINDOWS) {
-                    this.process = Runtime.getRuntime().exec("bin/qemu/qemu-system-x86_64w.exe " + commandLine, null, gameFolder);
-                } else if (SystemUtils.IS_OS_LINUX) {
-                    this.process = Runtime.getRuntime().exec("qemu-system-x86_64 " + commandLine, null, gameFolder);
+
+                if (SystemUtils.IS_OS_WINDOWS || SystemUtils.IS_OS_LINUX) {
+                    //this.process = Runtime.getRuntime().exec(String.join(" ", commandLine), null, gameFolder);
+                    this.process = Runtime.getRuntime().exec(aCommandLine, null, gameFolder);
                 }
-                builder.directory(gameFolder);
-                //System.out.println(commandLine);
-                //builder.redirectOutput(new File("vmlog.txt"));
-                //builder.redirectError(new File("errlog.txt"));
-                //System.out.println();
+
+                StreamGobbler errorGobbler = new StreamGobbler(this.process.getErrorStream());
+                StreamGobbler outputGobbler = new StreamGobbler(this.process.getInputStream());
+                errorGobbler.start();
+                outputGobbler.start();
+
+                //builder.directory(gameFolder);
+
+                System.out.println(commandLine);
+                //builder.inheritIO();
+                //builder.redirectOutput(new File("mcvm_vmlog.txt"));
+                //builder.redirectError(new File("mcvm_vmerrlog.txt"));
+                System.out.println();
 
                 MCVM.virtualMachines.add(this);
 
@@ -226,7 +281,7 @@ public class VirtualMachine {
         //system_reset
         try {
             if (this.isRunning()) {
-                this.monitor.getOutputStream().write(("system_reset\n").getBytes("UTF-8"));
+                this.monitor.getOutputStream().write(("system_reset\n").getBytes(StandardCharsets.UTF_8));
                 this.monitor.getOutputStream().flush();
 
                 while (this.monitor.getInputStream().available() > 0) {
@@ -241,10 +296,10 @@ public class VirtualMachine {
         try {
             this.floppy0 = file;
             if (this.isRunning()) {
-                this.monitor.getOutputStream().write("eject -f floppy0\n".getBytes("UTF-8"));
+                this.monitor.getOutputStream().write("eject -f floppy0\n".getBytes(StandardCharsets.UTF_8));
                 this.monitor.getOutputStream().flush();
                 if (this.floppy0 != null) {
-                    this.monitor.getOutputStream().write(("change floppy0 \"" + this.floppy0.toString().replace("\\", "\\\\") + "\"\n").getBytes("UTF-8"));
+                    this.monitor.getOutputStream().write(("change floppy0 \"" + this.floppy0.toString().replace("\\", "\\\\") + "\"\n").getBytes(StandardCharsets.UTF_8));
                     this.monitor.getOutputStream().flush();
                 }
                 //System.out.println("FLOPPY0 CHANGE!");
@@ -261,10 +316,10 @@ public class VirtualMachine {
         try {
             this.floppy1 = file;
             if (this.isRunning()) {
-                this.monitor.getOutputStream().write("eject -f floppy1\n".getBytes("UTF-8"));
+                this.monitor.getOutputStream().write("eject -f floppy1\n".getBytes(StandardCharsets.UTF_8));
                 this.monitor.getOutputStream().flush();
                 if (this.floppy1 != null) {
-                    this.monitor.getOutputStream().write(("change floppy1 \"" + this.floppy1.toString().replace("\\", "\\\\") + "\"\n").getBytes("UTF-8"));
+                    this.monitor.getOutputStream().write(("change floppy1 \"" + this.floppy1.toString().replace("\\", "\\\\") + "\"\n").getBytes(StandardCharsets.UTF_8));
                     this.monitor.getOutputStream().flush();
                 }
                 //System.out.println("FLOPPY1 CHANGE!");
@@ -281,10 +336,10 @@ public class VirtualMachine {
         try {
             this.cd0 = file;
             if (this.isRunning()) {
-                this.monitor.getOutputStream().write("eject -f ide1-cd0\n".getBytes("UTF-8"));
+                this.monitor.getOutputStream().write("eject -f ide1-cd0\n".getBytes(StandardCharsets.UTF_8));
                 this.monitor.getOutputStream().flush();
                 if (this.cd0 != null) {
-                    this.monitor.getOutputStream().write(("change ide1-cd0 \"" + this.cd0.toString().replace("\\", "\\\\") + "\"\n").getBytes("UTF-8"));
+                    this.monitor.getOutputStream().write(("change ide1-cd0 \"" + this.cd0.toString().replace("\\", "\\\\") + "\"\n").getBytes(StandardCharsets.UTF_8));
                     this.monitor.getOutputStream().flush();
                 }
                 //System.out.println("IDE1-CD0 CHANGE!");
@@ -301,10 +356,10 @@ public class VirtualMachine {
         try {
             this.cd1 = file;
             if (this.isRunning()) {
-                this.monitor.getOutputStream().write("eject -f ide1-cd1\n".getBytes("UTF-8"));
+                this.monitor.getOutputStream().write("eject -f ide1-cd1\n".getBytes(StandardCharsets.UTF_8));
                 this.monitor.getOutputStream().flush();
                 if (this.cd1 != null) {
-                    this.monitor.getOutputStream().write(("change ide1-cd1 \"" + this.cd1.toString().replace("\\", "\\\\") + "\"\n").getBytes("UTF-8"));
+                    this.monitor.getOutputStream().write(("change ide1-cd1 \"" + this.cd1.toString().replace("\\", "\\\\") + "\"\n").getBytes(StandardCharsets.UTF_8));
                     this.monitor.getOutputStream().flush();
                 }
                 //System.out.println("IDE1-CD1 CHANGE!");
@@ -327,16 +382,42 @@ public class VirtualMachine {
         return false;
     }
 
-    public String parseCommand(String command) {
-        TileEntity tileEntity = ccte;
-        World world = ccte.getWorld();
-        if (tileEntity instanceof ComputerContainerTileEntity) {
+    private String parseCommand(String command) {
+        JsonParser jsonParser = new JsonParser();
+        JsonObject jsonResponse = new JsonObject();
+        boolean commandExecuted = false;
+
+        if (isJSONValid(command)) {
+            JsonObject jsonCommand = jsonParser.parse(command).getAsJsonObject();
+            ComputerContainerTileEntity tileEntity;
+            tileEntity = ccte;
+            World world = ccte.getWorld();
             for (ICommandParser commandParser : MCVM.registeredCommandParsers) {
-                if (commandParser.canHandleCommand(command, (ComputerContainerTileEntity)tileEntity)) {
-                    return commandParser.parseCommand(command, (ComputerContainerTileEntity)tileEntity);
+                if (commandParser.canHandleCommand(jsonCommand, tileEntity)) {
+                    jsonResponse = commandParser.parseCommand(jsonCommand, tileEntity);
+                    commandExecuted = true;
                 }
             }
+        } else {
+            jsonResponse.add("result", new JsonPrimitive("error"));
+            jsonResponse.add("error", new JsonPrimitive("malformed input"));
         }
-        return "error.unknown.command";
+
+        if (!commandExecuted) {
+            jsonResponse.add("result", new JsonPrimitive("error"));
+            jsonResponse.add("error", new JsonPrimitive("invalid parameter"));
+            jsonResponse.add("parameter", new JsonPrimitive("subsystem"));
+        }
+
+        return jsonResponse.toString();
+    }
+
+    private static boolean isJSONValid(String jsonInString) {
+        try {
+            (new JsonParser()).parse(jsonInString);
+            return true;
+        } catch(com.google.gson.JsonSyntaxException ex) {
+            return false;
+        }
     }
 }

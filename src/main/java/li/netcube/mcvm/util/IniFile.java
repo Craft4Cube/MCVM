@@ -33,7 +33,7 @@ public class IniFile {
                     m = _keyValue.matcher( line );
                     if( m.matches()) {
                         String key   = m.group( 1 ).trim();
-                        String value = m.group( 2 ).trim();
+                        String value = m.group( 2 ).trim().replaceAll("^[\"|']|[\"|']$", "");
                         Map< String, String > kv = _entries.get( section );
                         if( kv == null ) {
                             _entries.put( section, kv = new HashMap<>());

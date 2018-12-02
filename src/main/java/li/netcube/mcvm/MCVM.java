@@ -110,7 +110,7 @@ public class MCVM
                 iniFile.createNewFile();
                 BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(iniFile));
                 bufferedWriter.write("[VirtualMachine]\r\n");
-                bufferedWriter.write("customArguments=\n\n");
+                bufferedWriter.write("customArguments=\"\"\n\n");
                 bufferedWriter.flush();
                 bufferedWriter.close();
             }
