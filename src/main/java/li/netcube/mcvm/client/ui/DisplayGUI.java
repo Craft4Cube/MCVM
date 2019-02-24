@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiLabel;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.DynamicTexture;
@@ -86,7 +87,6 @@ public class DisplayGUI extends GuiScreen {
         });
         client = new VernacularClient(config);
         connect();
-
 
         Keyboard.enableRepeatEvents(true);
     }
@@ -223,19 +223,37 @@ public class DisplayGUI extends GuiScreen {
     boolean lastMouseR = false;
 
     public void checkMouse(int bX, int bY, int bW, int bH) {
+        ScaledResolution scaledresolution = new ScaledResolution(Minecraft.getMinecraft());
+        float guiScale = scaledresolution.getScaleFactor()/2f;
         if (client != null && client.isRunning()) {
             int mouseX = Mouse.getX();
             int mouseY = Mouse.getY();
+            bW = (int)(bW*guiScale);
+            bH = (int)(bH*guiScale);
+            bX = (int)(bX*guiScale);
+            bY = (int)(bY*guiScale);
+            mouseX = (int)(mouseX*guiScale);
+            mouseY = (int)(mouseY*guiScale);
             if (lastMouseX != mouseX || lastMouseY != mouseY) {
+                System.out.println(mouseX);
+                System.out.println(mouseY);
+                System.out.println(bX);
+                System.out.println(bY);
+                System.out.println(bW);
+                System.out.println(bH);
+                System.out.println("-------------");
                 lastMouseY = mouseY; lastMouseX = mouseX;
 
                 mouseY = this.height - mouseY;
+                System.out.println(mouseX);
+                System.out.println(mouseY);
+                System.out.println("-------------");
 
                 mouseX = mouseX - bX;
                 mouseY = mouseY + bY;
-
-                mouseX = scaleMouseX(mouseX, bW, bW);
-                mouseY = scaleMouseY(mouseY, bH, bH);
+                System.out.println(mouseX);
+                System.out.println(mouseY);
+                System.out.println("-------------");
 
 
                 if (mouseX < 0) {mouseX = 0;}
@@ -243,7 +261,7 @@ public class DisplayGUI extends GuiScreen {
                 if (mouseY < 0) {mouseY = 0;}
                 if (mouseY > bH) {mouseY = bH;}
 
-                client.moveMouse(mouseX, mouseY);
+                client.moveMouse((int)(mouseX/guiScale), (int)(mouseY/guiScale));
             }
 
             boolean mouseL = Mouse.isButtonDown(0);

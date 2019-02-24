@@ -186,12 +186,7 @@ public class VirtualMachine {
                 errorGobbler.start();
                 outputGobbler.start();
 
-                //builder.directory(gameFolder);
-
                 System.out.println(commandLine);
-                //builder.inheritIO();
-                //builder.redirectOutput(new File("mcvm_vmlog.txt"));
-                //builder.redirectError(new File("mcvm_vmerrlog.txt"));
                 System.out.println();
 
                 MCVM.virtualMachines.add(this);
