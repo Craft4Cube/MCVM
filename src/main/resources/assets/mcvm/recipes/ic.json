@@ -1,0 +1,23 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "AAA",
+        "CBC",
+        "AAA"
+    ],
+    "key": {
+        "A": {
+            "item": "minecraft:iron_nugget"
+        },
+        "B": {
+            "item": "minecraft:redstone"
+        },
+        "C": {
+            "item": "minecraft:iron_ingot"
+        }
+    },
+    "result": {
+        "item": "mcvm:ic",
+        "count": 4
+    }
+}

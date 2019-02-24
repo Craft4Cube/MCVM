@@ -1,0 +1,20 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "ABC",
+		"A C",
+		"ABC"
+    ],
+    "key": {
+        "A": {
+            "item": "mcvm:pcb"
+        },
+        "B": {
+            "item": "mcvm:ic2"
+        },
+        "C": {
+            "item": "minecraft:gold_nugget"
+        }
+    },
+    "result": {"item": "mcvm:memory1"}
+}

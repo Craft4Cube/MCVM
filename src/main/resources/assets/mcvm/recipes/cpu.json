@@ -1,0 +1,20 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "ADA",
+		"DCD",
+		"ADA"
+    ],
+    "key": {
+        "A": {
+            "item": "minecraft:gold_nugget"
+        },
+        "C": {
+            "item": "mcvm:ic3"
+        },
+        "D": {
+            "item": "mcvm:pcb"
+        }
+    },
+    "result": {"item": "mcvm:cpu"}
+}

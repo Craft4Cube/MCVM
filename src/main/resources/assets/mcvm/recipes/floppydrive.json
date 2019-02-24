@@ -1,0 +1,23 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "ABA",
+		"CDC",
+		"CCC"
+    ],
+    "key": {
+        "A": {
+            "item": "mcvm:pcb"
+        },
+        "B": {
+            "item": "mcvm:ic"
+        },
+        "C": {
+            "item": "minecraft:iron_ingot"
+        },
+        "D": {
+            "item": "minecraft:redstone"
+        }
+    },
+    "result": {"item": "mcvm:floppydrive"}
+}

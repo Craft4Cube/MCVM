@@ -1,0 +1,20 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "AB",
+		"C "
+    ],
+    "key": {
+        "A": {
+            "item": "minecraft:gold_ingot"
+        },
+        "B": {
+            "item": "minecraft:clay_ball"
+        },
+        "C": {
+            "item": "minecraft:dye",
+            "data": 2
+        }
+    },
+    "result": {"item": "mcvm:pcb","count":4}
+}
