@@ -11,7 +11,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiLabel;
 import net.minecraft.client.gui.GuiScreen;
+<<<<<<< HEAD
 import net.minecraft.client.gui.ScaledResolution;
+=======
+>>>>>>> refs/remotes/origin/master
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.DynamicTexture;
@@ -88,6 +91,10 @@ public class DisplayGUI extends GuiScreen {
         client = new VernacularClient(config);
         connect();
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> refs/remotes/origin/master
         Keyboard.enableRepeatEvents(true);
     }
 
@@ -223,6 +230,7 @@ public class DisplayGUI extends GuiScreen {
     boolean lastMouseR = false;
 
     public void checkMouse(int bX, int bY, int bW, int bH) {
+<<<<<<< HEAD
         ScaledResolution scaledresolution = new ScaledResolution(Minecraft.getMinecraft());
         float guiScale = scaledresolution.getScaleFactor()/2f;
         if (client != null && client.isRunning()) {
@@ -254,6 +262,21 @@ public class DisplayGUI extends GuiScreen {
                 System.out.println(mouseX);
                 System.out.println(mouseY);
                 System.out.println("-------------");
+=======
+        if (client != null && client.isRunning()) {
+            int mouseX = Mouse.getX();
+            int mouseY = Mouse.getY();
+            if (lastMouseX != mouseX || lastMouseY != mouseY) {
+                lastMouseY = mouseY; lastMouseX = mouseX;
+
+                mouseY = this.height - mouseY;
+
+                mouseX = mouseX - bX;
+                mouseY = mouseY + bY;
+
+                mouseX = scaleMouseX(mouseX, bW, bW);
+                mouseY = scaleMouseY(mouseY, bH, bH);
+>>>>>>> refs/remotes/origin/master
 
 
                 if (mouseX < 0) {mouseX = 0;}
@@ -261,7 +284,11 @@ public class DisplayGUI extends GuiScreen {
                 if (mouseY < 0) {mouseY = 0;}
                 if (mouseY > bH) {mouseY = bH;}
 
+<<<<<<< HEAD
                 client.moveMouse((int)(mouseX/guiScale), (int)(mouseY/guiScale));
+=======
+                client.moveMouse(mouseX, mouseY);
+>>>>>>> refs/remotes/origin/master
             }
 
             boolean mouseL = Mouse.isButtonDown(0);
