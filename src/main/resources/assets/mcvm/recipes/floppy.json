@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " C ",
+    "DBD",
+    " D "
+  ],
+  "key": {
+    "B": {
+      "item": "minecraft:redstone"
+    },
+    "C": {
+      "item": "minecraft:iron_ingot"
+    },
+    "D": {
+      "item": "minecraft:stone",
+      "data": 0
+    }
+  },
+  "result": {
+    "item": "mcvm:floppy",
+    "count": 4,
+    "nbt": {
+      "CompoundTag": {
+        "type": "FD"
+      }
+    }
+  }
+}

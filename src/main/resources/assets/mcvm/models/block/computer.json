@@ -1,0 +1,12 @@
+{
+	"parent": "block/cube",
+	"textures": {
+		"north": "mcvm:blocks/computer_front",
+		"south": "mcvm:blocks/computer_back",
+		"west": "mcvm:blocks/computer_side",
+		"east": "mcvm:blocks/computer_side",
+		"up": "mcvm:blocks/computer_top",
+		"down": "mcvm:blocks/computer_top",
+		"particle": "mcvm:blocks/computer_back"
+	}
+}

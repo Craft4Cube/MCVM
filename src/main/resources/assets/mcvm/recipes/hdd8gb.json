@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IPI",
+    "GPG",
+    "MCM"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "P": {
+      "item": "mcvm:diskplatter"
+    },
+    "M": {
+      "item": "mcvm:ic"
+    },
+    "C": {
+      "item": "mcvm:pcb"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    }
+  },
+  "result": {
+    "item": "mcvm:harddisk",
+    "nbt": {
+      "type": "HD",
+      "size": "8G"
+    }
+  }
+}
